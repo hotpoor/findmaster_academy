@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>网页前端搜索文本内容高亮</title>
+    <style type="text/css">
+        .highlight{
+            color: #03a9f4;
+        }
+        p{
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="test_base">
+        原题：This is some sample text. You can highlight <span style="color:red;">red specific</span> words in this text.
+    </div>
+    <h3>方法一：正则替换（常见）</h3>
+    <p>高亮: highlight, text</p>
+    <div class="test_result0">
+        原题：This is some sample text. You can highlight <span style="color:red;">red specific</span> words in this text.
+    </div>
+    <h3>错误可能：错误情况，如果刚好是DOM标签内容</h3>
+    <p>高亮: red, text</p>
+    <div class="test_result1">
+        原题：This is some sample text. You can highlight <span style="color:red;">red specific</span> words in this text.
+    </div>
+    <h3>方法二：childNodes才是正解</h3>
+    <p>高亮: red, text, o</p>
+    <div class="test_result2">
+        原题：This is some sample text. You can highlight <span style="color:red;">red specific</span> words in this text.
+        <br>
+        <a href="http://www.baidu.com">这是个a标签red</a>
+        <p>这是个p标签red</p>
+        <div>这是个div标签 yellow red green</div>
+    </div>
+</body>
+</html>
+<script type="text/javascript">
+    function action_test_result0(search_content){
+        textElement = document.querySelector(".test_result0")
+        textContent = textElement.innerHTML;
+        pattern = new RegExp(search_content, "gi");//正则查找
+        highlightedText = textContent.replace(pattern, function(match){//replace替换
+            return "<span class=\"highlight\">" + match + "</span>";
+        });
+        textElement.innerHTML = highlightedText;
+    }
+    action_test_result0("highlight")
+    action_test_result0("text")
+    function action_test_result1(search_content){
+        textElement = document.querySelector(".test_result1")
+        textContent = textElement.innerHTML;
+        pattern = new RegExp(search_content, "gi");//正则查找
+        highlightedText = textContent.replace(pattern, function(match){//replace替换
+            return "<span class=\"highlight\">" + match + "</span>";
+        });
+        textElement.innerHTML = highlightedText;
+    }
+    action_test_result1("red")
+    action_test_result1("text")
+    function action_test_result2(search_content){
+        var textElement = document.querySelector(".test_result2")
+        function check_dom(_dom,_replace_str){
+            var _dom_childNodes = _dom.childNodes;
+            var _dom_childNodes_num = _dom_childNodes.length;
+            var i = 0
+            while (i < _dom_childNodes_num){
+                _dom_childNode = _dom_childNodes[i]
+                if (_dom_childNode.nodeName === "#text") {
+                    _is_dom_childNode_has_replace_str = _dom_childNode.nodeValue.indexOf(_replace_str)>-1
+                    if(_is_dom_childNode_has_replace_str){
+                        _dom_childNode_list = _dom_childNode.nodeValue.split(_replace_str);
+                        for (var j=0;j<_dom_childNode_list.length;j++){
+                            _dom_childNode_list_item=_dom_childNode_list[j]
+                            i+=2
+                            _dom_childNode.before(_dom_childNode_list_item);
+                            _add_span = document.createElement("span");
+                            _add_span.innerText = _replace_str;
+                            _add_span.className = "highlight";
+                            _dom_childNode.before(_add_span);
+                        }
+                        i-=2
+                        _dom_childNode.previousSibling.remove();
+                        _dom_childNode.remove()
+                        _dom_childNodes_num = _dom_childNodes.length;
+                        _dom_childNodes = _dom.childNodes;
+                    }
+                } else{
+                    check_dom(_dom_childNode, _replace_str)
+                }
+                i+=1
+            }
+        }
+        check_dom(textElement,search_content)
+    }
+    action_test_result2("red")
+    action_test_result2("text")
+    action_test_result2("e")
+    action_test_result2("o")
+    
+</script>
+
+
+
